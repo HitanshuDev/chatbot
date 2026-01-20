@@ -1,0 +1,327 @@
+{
+  "info": {
+    "name": "AI Chatbot Platform API",
+    "description": "API endpoints for the AI Chatbot Platform",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": {
+      "token": "{{JWT_TOKEN}}"
+    }
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/v1/auth/signup",
+            "body": {
+              "raw": "{\"email\":\"user@example.com\",\"password\":\"password123\",\"name\":\"John Doe\"}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/v1/auth/login",
+            "body": {
+              "raw": "{\"email\":\"user@example.com\",\"password\":\"password123\"}"
+            }
+          }
+        },
+        {
+          "name": "Google Auth",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/v1/auth/google",
+            "body": {
+              "raw": "{\"googleId\":\"google-id\",\"email\":\"user@gmail.com\",\"name\":\"John\",\"avatar\":\"url\"}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/v1/auth/refresh",
+            "body": {
+              "raw": "{\"token\":\"{{JWT_TOKEN}}\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bots",
+      "item": [
+        {
+          "name": "Create Bot",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/v1/bots",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            },
+            "body": {
+              "raw": "{\"name\":\"Support Bot\",\"description\":\"Customer support\",\"initialPrompt\":\"You are helpful.\"}"
+            }
+          }
+        },
+        {
+          "name": "Get Bots",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/v1/bots",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            }
+          }
+        },
+        {
+          "name": "Get Bot by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            }
+          }
+        },
+        {
+          "name": "Update Bot",
+          "request": {
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            },
+            "body": {
+              "raw": "{\"name\":\"New Name\",\"theme\":\"dark\"}"
+            }
+          }
+        },
+        {
+          "name": "Delete Bot",
+          "request": {
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            }
+          }
+        },
+        {
+          "name": "Get Bot Config",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}/config",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Conversations & Messages",
+      "item": [
+        {
+          "name": "Start Conversation",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}/conversations",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            }
+          }
+        },
+        {
+          "name": "Get Conversations",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}/conversations",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            }
+          }
+        },
+        {
+          "name": "Get Conversation by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/v1/conversations/{{CONVERSATION_ID}}",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            }
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/v1/conversations/{{CONVERSATION_ID}}/messages",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            },
+            "body": {
+              "raw": "{\"content\":\"Hello, how can I help?\"}"
+            }
+          }
+        },
+        {
+          "name": "Get Messages",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/v1/conversations/{{CONVERSATION_ID}}/messages?limit=50&offset=0",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            }
+          }
+        },
+        {
+          "name": "Delete Message",
+          "request": {
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/v1/messages/{{MESSAGE_ID}}",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documents & Embeddings",
+      "item": [
+        {
+          "name": "Upload Document",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}/uploads",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            },
+            "body": {
+              "raw": "{\"fileName\":\"document.pdf\",\"fileType\":\"pdf\",\"content\":\"Document content here...\"}"
+            }
+          }
+        },
+        {
+          "name": "Get Uploads",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}/uploads",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            }
+          }
+        },
+        {
+          "name": "Delete Upload",
+          "request": {
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}/uploads/{{UPLOAD_ID}}",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            }
+          }
+        },
+        {
+          "name": "Get Upload Status",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/v1/uploads/{{UPLOAD_ID}}/status"
+          }
+        },
+        {
+          "name": "Search Embeddings",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}/search",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            },
+            "body": {
+              "raw": "{\"query\":\"search query\",\"limit\":5}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Bot Usage",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}/usage",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            }
+          }
+        },
+        {
+          "name": "Get Bot Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}/metrics?startDate=2024-01-01&endDate=2024-12-31",
+            "header": {
+              "Authorization": "Bearer {{JWT_TOKEN}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Widget",
+      "item": [
+        {
+          "name": "Get Widget Script",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}/script.js"
+          }
+        },
+        {
+          "name": "Get Widget Config",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/v1/bots/{{BOT_ID}}/config"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "JWT_TOKEN",
+      "value": "your-jwt-token-here"
+    },
+    {
+      "key": "BOT_ID",
+      "value": "bot-id-here"
+    },
+    {
+      "key": "CONVERSATION_ID",
+      "value": "conversation-id-here"
+    },
+    {
+      "key": "MESSAGE_ID",
+      "value": "message-id-here"
+    },
+    {
+      "key": "UPLOAD_ID",
+      "value": "upload-id-here"
+    }
+  ]
+}
