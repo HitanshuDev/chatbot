@@ -9,43 +9,37 @@ import { Bot, MessageSquare, Users, TrendingUp, Plus } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { toast } from 'sonner';
+import { useBotStore } from "@/store/bot";
+
+// import { toast } from 'sonner';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalBots: 0,
-    totalConversations: 0,
-    totalMessages: 0,
-    activeUsers: 0,
-  });
+  const { bots, fetchBots, isLoading } = useBotStore();
+
 
   useEffect(() => {
-    // Hydrate auth on mount
     useAuthStore.getState().hydrate();
-    
+
     if (!user) {
-      router.push('/auth/login');
+      router.push("/auth/login");
       return;
     }
 
-    // Simulate loading stats
-    setTimeout(() => {
-      setStats({
-        totalBots: 3,
-        totalConversations: 156,
-        totalMessages: 2840,
-        activeUsers: 89,
-      });
-      setIsLoading(false);
-    }, 1000);
-  }, [user, router]);
+    fetchBots();
+  }, [user, fetchBots, router]);
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
+
+  const stats = {
+    totalBots: bots.length,
+    totalConversations: 0,
+    totalMessages: 0,
+    activeUsers: 0,
+  };
+
+
 
   return (
     <DashboardLayout>

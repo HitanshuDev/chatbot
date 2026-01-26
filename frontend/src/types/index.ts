@@ -15,7 +15,7 @@ export interface AuthResponse {
 
 // Bot Types
 export interface Bot {
-  id: string;
+  _id: string;
   name: string;
   ownerId: string;
   apiKey: string;
