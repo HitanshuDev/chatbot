@@ -9,6 +9,7 @@ import {
 } from "../controllers/message.controller";
 import { optionalAuthMiddleware } from "../middleware/auth.middleware";
 import { botAuthMiddleware } from "../middleware/botAuth.middleware";
+import { apiKeyAuth } from "../middleware/message.middleware";
 
 const router = Router();
 
@@ -40,7 +41,7 @@ router.get(
 // POST /conversations/:conversationId/messages
 router.post(
   "/conversations/:conversationId/messages",
-  optionalAuthMiddleware,
+  apiKeyAuth,
   sendMessage
 );
 

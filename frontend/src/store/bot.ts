@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { Bot } from "@/types";
-import { useAuthStore } from "./auth";
+import { apiClient } from "@/lib/api";
 
 interface BotStore {
   bots: Bot[];
@@ -15,7 +15,7 @@ interface BotStore {
   setActiveBot: (bot: Bot | null) => void;
 }
 
-export const useBotStore = create<BotStore>((set, get) => ({
+export const useBotStore = create<BotStore>((set) => ({
   bots: [],
   activeBot: null,
   isLoading: false,
@@ -26,22 +26,11 @@ export const useBotStore = create<BotStore>((set, get) => ({
   fetchBots: async () => {
     try {
       set({ isLoading: true, error: null });
-
-      const token = useAuthStore.getState().token;
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bots`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) throw new Error("Failed to fetch bots");
-
-      const data = await res.json();
-
+      const data = await apiClient.getBots();
+      
       set({ bots: data.bots });
     } catch (err: any) {
-      set({ error: err.message });
+      set({ error: err.message || "Failed to fetch bots" });
     } finally {
       set({ isLoading: false });
     }
@@ -50,28 +39,13 @@ export const useBotStore = create<BotStore>((set, get) => ({
   createBot: async (botData) => {
     try {
       set({ isLoading: true, error: null });
-
-      const token = useAuthStore.getState().token;
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bots`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(botData),
-      });
-
-      if (!res.ok) throw new Error("Failed to create bot");
-
-      const data = await res.json();
-
+      const data = await apiClient.createBot(botData);
       set((state) => ({
         bots: [...state.bots, data.bot],
         activeBot: data.bot,
       }));
     } catch (err: any) {
-      set({ error: err.message });
+      set({ error: err.message || "Failed to create bot" });
     } finally {
       set({ isLoading: false });
     }
@@ -80,31 +54,13 @@ export const useBotStore = create<BotStore>((set, get) => ({
   updateBot: async (botId, updateData) => {
     try {
       set({ isLoading: true, error: null });
-
-      const token = useAuthStore.getState().token;
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/bots/${botId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(updateData),
-        },
-      );
-
-      if (!res.ok) throw new Error("Failed to update bot");
-
-      const data = await res.json();
-
+      const data = await apiClient.updateBot(botId, updateData);
       set((state) => ({
         bots: state.bots.map((b) => (b.id === botId ? data.bot : b)),
-        activeBot: state.activeBot?.id === botId ? data.bot : state.activeBot,
+        activeBot: state.activeBot?._id === botId ? data.bot : state.activeBot,
       }));
     } catch (err: any) {
-      set({ error: err.message });
+      set({ error: err.message || "Failed to update bot" });
     } finally {
       set({ isLoading: false });
     }
@@ -113,27 +69,13 @@ export const useBotStore = create<BotStore>((set, get) => ({
   deleteBot: async (botId) => {
     try {
       set({ isLoading: true, error: null });
-
-      const token = useAuthStore.getState().token;
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/bots/${botId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (!res.ok) throw new Error("Failed to delete bot");
-
+      await apiClient.deleteBot(botId);
       set((state) => ({
-        bots: state.bots.filter((b) => b.id !== botId),
-        activeBot: state.activeBot?.id === botId ? null : state.activeBot,
+        bots: state.bots.filter((b) => b._id !== botId),
+        activeBot: state.activeBot?._id === botId ? null : state.activeBot,
       }));
     } catch (err: any) {
-      set({ error: err.message });
+      set({ error: err.message || "Failed to delete bot" });
     } finally {
       set({ isLoading: false });
     }

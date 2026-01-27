@@ -89,6 +89,7 @@ export const sendMessage = async (req: Request, res: Response) => {
     }
 
     const conversation = await Conversation.findById(conversationId);
+    
     if (!conversation) {
       return res.status(404).json({ error: "Conversation not found" });
     }
@@ -110,8 +111,10 @@ export const sendMessage = async (req: Request, res: Response) => {
     conversation.messages.push(userMessage._id as any);
 
     // Get conversation history for context
-    const messages = await Message.find({ conversationId }).sort({ createdAt: 1 });
-    const history = messages.map((m) => ({
+    const messages = await Message.find({ conversationId })
+      .sort({ createdAt: -1 })
+      .limit(10);
+    const history = messages.reverse().map((m) => ({
       role: m.sender === "user" ? "user" : "assistant",
       content: m.content,
     }));
@@ -120,30 +123,39 @@ export const sendMessage = async (req: Request, res: Response) => {
     const cacheKey = `response:${bot._id}:${content.substring(0, 50)}`;
     let cachedResponse = await cacheGet(cacheKey);
 
-    let botResponseContent: string;
+    let botResponseContent = "I'm having trouble right now. Please try again.";
 
     if (cachedResponse) {
       botResponseContent = cachedResponse;
     } else {
       // Call OpenAI API
-      const response = await openai.chat.completions.create({
-        model: bot.model,
-        messages: [
-          {
-            role: "system",
-            content: bot.initialPrompt,
-          },
-          ...history,
-        ] as any,
-        temperature: bot.temperature,
-        max_tokens: bot.maxTokens,
-      });
+      try{
+        const response = await openai.chat.completions.create({
+          model: bot.model,
+          messages: [
+            {
+              role: "system",
+              content: bot.initialPrompt,
+            },
+            ...history,
+          ] as any,
 
-      botResponseContent =
-        response.choices[0].message.content || "I couldn't generate a response.";
+          temperature: bot.temperature,
+          max_tokens: bot.maxTokens,
+          
+        });
+        botResponseContent =
+          response.choices[0].message.content ||
+          "I couldn't generate a response.";
 
-      // Cache the response
-      await cacheSet(cacheKey, botResponseContent, 24 * 60 * 60);
+        // Cache the response
+        await cacheSet(cacheKey, botResponseContent, 24 * 60 * 60);
+      }catch(err){
+          console.error("OpenAI error:", err);
+      }
+      
+
+      
     }
 
     // Save bot message

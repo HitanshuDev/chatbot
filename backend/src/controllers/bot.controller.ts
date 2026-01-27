@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Bot from "../models/bot.model";
 import APIKey from "../models/apiKey.model";
 import { generateAPIKey } from "../utils/apiKey";
+import {hashApiKey} from "../utils/apiKey";
 
 export const createBot = async (req: Request, res: Response) => {
   try {
@@ -15,6 +16,8 @@ export const createBot = async (req: Request, res: Response) => {
 
     const apiKey = generateAPIKey();
 
+    const hashedApiKey = hashApiKey(apiKey);
+
     const bot = await Bot.create({
       name,
       description,
@@ -25,14 +28,14 @@ export const createBot = async (req: Request, res: Response) => {
       maxTokens: maxTokens || 500,
       model: model || "gpt-3.5-turbo",
       ownerId: userId,
-      apiKey,
+      // apiKey,
     });
 
     // Create API key record
     await APIKey.create({
       botId: bot._id,
       userId,
-      key: apiKey,
+      keyHash: hashedApiKey,
       name: `${name} API Key`,
     });
 
@@ -55,7 +58,7 @@ export const getBots = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
 
     const bots = await Bot.find({ ownerId: userId }).select("-apiKey");
-
+    
     res.json({ bots });
   } catch (error) {
     console.error("Get bots error:", error);

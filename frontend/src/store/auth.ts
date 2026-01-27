@@ -6,6 +6,7 @@ interface AuthStore {
   token: string | null;
   isLoading: boolean;
   error: string | null;
+  hydrated: boolean;
 
   // Actions
   setUser: (user: User | null) => void;
@@ -21,15 +22,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
   token: null,
   isLoading: false,
   error: null,
+  hydrated: false,
 
   setUser: (user) => set({ user }),
   setToken: (token) => {
     set({ token });
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       if (token) {
-        localStorage.setItem('token', token);
+        localStorage.setItem("token", token);
       } else {
-        localStorage.removeItem('token');
+        localStorage.removeItem("token");
       }
     }
   },
@@ -37,16 +39,17 @@ export const useAuthStore = create<AuthStore>((set) => ({
   setError: (error) => set({ error }),
   logout: () => {
     set({ user: null, token: null });
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
     }
   },
   hydrate: () => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
       if (token) {
         set({ token });
       }
+      set({ hydrated: true });
     }
   },
 }));

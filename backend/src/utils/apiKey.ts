@@ -7,6 +7,11 @@ export const generateAPIKey = (): string => {
   return prefix + randomBytes;
 };
 
+export const hashApiKey = (key: string) : string => {
+  return crypto.createHash("sha256").update(key).digest("hex");
+}
+
+
 export const generateBotId = (): string => {
   return uuidv4();
 };

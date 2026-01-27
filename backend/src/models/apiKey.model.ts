@@ -12,7 +12,7 @@ const apiKeySchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    key: {
+    keyHash: {
       type: String,
       required: true,
       unique: true,

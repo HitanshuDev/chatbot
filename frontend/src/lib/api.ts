@@ -70,6 +70,7 @@ class ApiClient {
 
   async getBots() {
     const response = await this.client.get('/bots');
+    console.log(response);
     return response.data;
   }
 

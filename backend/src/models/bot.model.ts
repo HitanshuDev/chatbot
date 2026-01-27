@@ -11,11 +11,11 @@ const botSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    apiKey: {
-      type: String,
-      required: true,
-      unique: true,
-    },
+    // apiKey: {
+    //   type: String,
+    //   required: true,
+    //   unique: true,
+    // },
     avatar: String,
     description: String,
     theme: {

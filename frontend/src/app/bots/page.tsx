@@ -24,21 +24,28 @@ import { CreateBotDialog } from "@/components/create-bot-dialog";
 
 export default function BotsPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user , token , hydrated } = useAuthStore();
   const { bots, fetchBots, deleteBot, isLoading } = useBotStore();
    const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
+    useEffect(() => {
+      useAuthStore.getState().hydrate();
+    }, []);
 
-  useEffect(() => {
-    useAuthStore.getState().hydrate();
 
-    if (!user) {
-      router.push("/auth/login");
-      return;
-    }
+useEffect(() => {
+  if (!hydrated) return;
 
-    fetchBots();
-  }, [user, fetchBots, router]);
+  if (!token) {
+    toast.error("You must be logged in");
+    router.push("/auth/login");
+    return;
+  }
+
+  fetchBots();
+}, [hydrated, token, fetchBots, router]);
+
+
 
 
   const handleDelete = async (botId: string) => {
@@ -53,9 +60,10 @@ export default function BotsPage() {
   };
 
 
-  if (!user) {
-    return null;
-  }
+if (!hydrated) {
+  return null;
+}
+
 
   return (
     <DashboardLayout>
