@@ -61,7 +61,7 @@ export function Sidebar() {
           const Icon = route.icon;
           return (
             <Link
-              key={route.href}
+              key={route.label}
               href={route.href}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',

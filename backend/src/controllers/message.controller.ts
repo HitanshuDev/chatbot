@@ -4,6 +4,7 @@ import Conversation from "../models/conversation.model";
 import Bot from "../models/bot.model";
 import { openai } from "../utils/openai";
 import { cacheGet, cacheSet } from "../utils/redis";
+import crypto from "crypto";
 
 export const startConversation = async (req: Request, res: Response) => {
   try {
@@ -84,6 +85,7 @@ export const sendMessage = async (req: Request, res: Response) => {
     const { conversationId } = req.params;
     const { content } = req.body;
 
+
     if (!content) {
       return res.status(400).json({ error: "Message content required" });
     }
@@ -98,6 +100,12 @@ export const sendMessage = async (req: Request, res: Response) => {
     if (!bot) {
       return res.status(404).json({ error: "Bot not found" });
     }
+
+    // if (req.apiKey.botId.toString() !== bot._id.toString()) {
+    //   return res
+    //     .status(403)
+    //     .json({ error: "API key not authorized for this bot" });
+    // }
 
     // Save user message
     const userMessage = await Message.create({
@@ -118,14 +126,28 @@ export const sendMessage = async (req: Request, res: Response) => {
       role: m.sender === "user" ? "user" : "assistant",
       content: m.content,
     }));
+// console.log("CACHE INPUT", {
+//   botId: bot._id?.toString(),
+//   content,
+//   contentLength: content?.length,
+// });
 
     // Check cache for similar queries
-    const cacheKey = `response:${bot._id}:${content.substring(0, 50)}`;
+
+    const normalized = content.trim().toLowerCase();
+
+    const hash = crypto.createHash("sha256").update(normalized).digest("hex");
+
+    const cacheKey = `response:${bot._id}:${hash}`;
     let cachedResponse = await cacheGet(cacheKey);
 
-    let botResponseContent = "I'm having trouble right now. Please try again.";
+    // console.log("CACHE KEY:", cacheKey);
 
+
+    let botResponseContent = "I'm having trouble right now. Please try again.";
+    // let cachedResponse = null;
     if (cachedResponse) {
+      // console.log("USING CACHE");
       botResponseContent = cachedResponse;
     } else {
       // Call OpenAI API
@@ -153,9 +175,7 @@ export const sendMessage = async (req: Request, res: Response) => {
       }catch(err){
           console.error("OpenAI error:", err);
       }
-      
-
-      
+    
     }
 
     // Save bot message

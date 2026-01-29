@@ -10,6 +10,7 @@ import {
 import { optionalAuthMiddleware } from "../middleware/auth.middleware";
 import { botAuthMiddleware } from "../middleware/botAuth.middleware";
 import { apiKeyAuth } from "../middleware/message.middleware";
+import { sendMessageLimiter } from "../middleware/rateLimit";
 
 const router = Router();
 
@@ -41,7 +42,8 @@ router.get(
 // POST /conversations/:conversationId/messages
 router.post(
   "/conversations/:conversationId/messages",
-  apiKeyAuth,
+  // apiKeyAuth,
+  sendMessageLimiter,
   sendMessage
 );
 

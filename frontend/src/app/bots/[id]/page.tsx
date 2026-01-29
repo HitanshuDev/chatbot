@@ -10,6 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChatUI } from '@/components/dashboard/chat-ui';
 import { StatCard } from '@/components/dashboard/stat-card';
+import { apiClient } from '@/lib/api';
+import { createChatClient } from "@/lib/chatApi";
+
 import {
   MessageSquare,
   Settings,
@@ -25,6 +28,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 
 export default function BotDetailPage() {
+  
   const router = useRouter();
   const params = useParams();
   const botId = params.id as string;
@@ -36,106 +40,74 @@ export default function BotDetailPage() {
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    useAuthStore.getState().hydrate();
-    if (!user) {
-      router.push('/auth/login');
-      return;
-    }
+useEffect(() => {
+  if (!user) {
+    router.push("/auth/login");
+    return;
+  }
 
-    // Simulate loading bot
-    setTimeout(() => {
-      setBot({
-        id: botId,
-        name: 'Customer Support Bot',
-        ownerId: user.id,
-        apiKey: 'sk_test_abc123def456',
-        description: 'Handles customer inquiries and support tickets',
-        theme: 'light',
-        initialPrompt: 'You are a helpful customer support agent for our company.',
-        temperature: 0.7,
-        maxTokens: 2000,
-        model: 'gpt-4',
-        embeddings: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-      setMessages([
-        {
-          id: '1',
-          conversationId: '1',
-          botId: botId,
-          sender: 'bot',
-          content: 'Hello! I\'m here to help. What can I assist you with today?',
-          tokens: 15,
-          createdAt: new Date(),
-        },
-        {
-          id: '2',
-          conversationId: '1',
-          botId: botId,
-          sender: 'user',
-          content: 'I have a question about my order',
-          tokens: 10,
-          createdAt: new Date(),
-        },
-        {
-          id: '3',
-          conversationId: '1',
-          botId: botId,
-          sender: 'bot',
-          content: 'I\'d be happy to help! Could you please provide your order number?',
-          tokens: 18,
-          metadata: {
-            confidence: 0.95,
-            sources: ['order-faq.pdf'],
-          },
-          createdAt: new Date(),
-        },
-      ]);
-      setConversation({
-        id: '1',
-        botId: botId,
-        userId: 'user_demo',
-        title: 'Order Support',
-        messages: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+  const init = async () => {
+    try {
+      setIsLoading(true);
+
+      // 1️⃣ Fetch bot
+      const botRes = await apiClient.getBot(botId);
+      setBot(botRes.bot);
+
+      // 2️⃣ Create conversation
+      const convoRes = await apiClient.createConversation(botId);
+      setConversation(convoRes.conversation);
+
+      // 3️⃣ Load messages (empty initially)
+      setMessages([]);
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to load bot");
+    } finally {
       setIsLoading(false);
-    }, 600);
-  }, [botId, user, router]);
+    }
+  };
+
+  init();
+}, [router, botId, user]);
+
 
   const handleSendMessage = async (content: string) => {
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      conversationId: conversation?.id || '1',
-      botId: botId,
-      sender: 'user',
+    if (!conversation) return;
+
+    // 1️⃣ Optimistic user message
+    const tempUserMessage: Message = {
+      id: `temp-${Date.now()}`,
+      conversationId: conversation.id,
+      botId,
+      sender: "user",
       content,
-      tokens: 10,
+      tokens: 0,
       createdAt: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [...prev, tempUserMessage]);
 
-    // Simulate bot response
-    setTimeout(() => {
+    try {
+      // 2️⃣ Send to backend
+      const res = await apiClient.sendMessage(conversation.id, content);
+
+      // 3️⃣ Append bot message from backend
       const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        conversationId: conversation?.id || '1',
-        botId: botId,
-        sender: 'bot',
-        content: `I understand you're asking about "${content}". Let me help you with that!`,
-        tokens: 20,
-        metadata: {
-          confidence: 0.92,
-          sources: ['knowledge-base.pdf'],
-        },
-        createdAt: new Date(),
+        id: res.message.id,
+        conversationId: conversation.id,
+        botId,
+        sender: "bot",
+        content: res.message.content,
+        tokens: 0,
+        createdAt: new Date(res.message.createdAt),
       };
+
       setMessages((prev) => [...prev, botMessage]);
-    }, 1000);
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to send message");
+    }
   };
 
   const copyApiKey = () => {

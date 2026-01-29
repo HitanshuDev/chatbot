@@ -54,7 +54,7 @@ export function ChatUI({ messages, onSendMessage, isLoading }: ChatUIProps) {
             ))
           : messages.map((msg, i) => (
               <div
-                key={i}
+                key={msg.id}
                 className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
