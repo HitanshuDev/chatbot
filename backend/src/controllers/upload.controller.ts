@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import Upload from "../models/upload.model";
 import Embedding from "../models/embedding.model";
 import Bot from "../models/bot.model";
-import { openai } from "../utils/openai";
+import { getOpenAIClient } from "../utils/openai";
 
 export const uploadDocument = async (req: Request, res: Response) => {
   try {
@@ -29,7 +29,7 @@ export const uploadDocument = async (req: Request, res: Response) => {
     });
 
     // Trigger async embedding job (in real app, this would be a queue job)
-    processUpload(upload._id as string).catch((err) =>
+    processUpload(String(upload._id)).catch((err) =>
       console.error("Error processing upload:", err)
     );
 
@@ -140,7 +140,7 @@ async function processUpload(uploadId: string) {
       const chunk = chunks[i];
 
       // Generate embedding using OpenAI
-      const response = await openai.embeddings.create({
+      const response = await getOpenAIClient().embeddings.create({
         model: "text-embedding-ada-002",
         input: chunk,
       });
@@ -206,7 +206,7 @@ export const searchEmbeddings = async (req: Request, res: Response) => {
     }
 
     // Generate embedding for query
-    const queryResponse = await openai.embeddings.create({
+    const queryResponse = await getOpenAIClient().embeddings.create({
       model: "text-embedding-ada-002",
       input: query,
     });

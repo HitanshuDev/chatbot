@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import Message from "../models/message.model";
 import Conversation from "../models/conversation.model";
 import Bot from "../models/bot.model";
-import { openai } from "../utils/openai";
+import { getOpenAIClient } from "../utils/openai";
 import { cacheGet, cacheSet } from "../utils/redis";
 import crypto from "crypto";
 
@@ -152,7 +152,7 @@ export const sendMessage = async (req: Request, res: Response) => {
     } else {
       // Call OpenAI API
       try{
-        const response = await openai.chat.completions.create({
+        const response = await getOpenAIClient().chat.completions.create({
           model: bot.model,
           messages: [
             {

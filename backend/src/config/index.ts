@@ -5,7 +5,7 @@ export const DATABASE_CONFIG = {
 
 export const JWT_CONFIG = {
   secret: process.env.JWT_SECRET || "your-secret-key-change-in-production",
-  expiresIn: "7d",
+  expiresIn: "7d" as const,
 };
 
 export const OPENAI_CONFIG = {

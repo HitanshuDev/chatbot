@@ -10,5 +10,3 @@ export const getOpenAIClient = (): OpenAI => {
   }
   return openaiInstance;
 };
-
-export const openai = getOpenAIClient();

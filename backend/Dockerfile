@@ -27,7 +27,7 @@ RUN npm cache clean --force
 COPY package*.json ./
 COPY .npmrc ./
 
-RUN npm ci
+RUN npm install
 
 COPY . .
 
@@ -43,7 +43,7 @@ RUN npm cache clean --force
 COPY package*.json ./
 COPY .npmrc ./
 
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 COPY --from=builder /app/dist ./dist
 

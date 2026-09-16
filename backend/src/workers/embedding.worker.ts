@@ -1,11 +1,10 @@
-import dotenv from "dotenv";
-dotenv.config();
+import "dotenv/config";
 
 import Queue from "bull";
 import Upload from "../models/upload.model";
 import Embedding from "../models/embedding.model";
 import Bot from "../models/bot.model";
-import { openai } from "../utils/openai";
+import { getOpenAIClient } from "../utils/openai";
 import mongoose from "mongoose";
 
 // Connect to MongoDB
@@ -35,7 +34,7 @@ embeddingQueue.process(async (job) => {
     const chunk = chunks[i];
 
     // Generate embedding using OpenAI
-    const response = await openai.embeddings.create({
+    const response = await getOpenAIClient().embeddings.create({
       model: "text-embedding-ada-002",
       input: chunk,
     });

@@ -1,31 +1,28 @@
-version: '3.8'
-
 services:
-  # MongoDB Database
   mongodb:
     image: mongo:7
     container_name: chatbot-mongodb
     ports:
-      - "27017:27017"
+      # Bound to loopback only: never expose a dev database on all interfaces.
+      - "127.0.0.1:27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:?set MONGO_USER in .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?set MONGO_PASSWORD in .env}
     volumes:
       - mongodb_data:/data/db
     networks:
       - chatbot-network
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost/test --quiet
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand('ping').ok"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
-  # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: chatbot-redis
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -34,90 +31,66 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
-  # Backend API
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
       target: development
     container_name: chatbot-backend
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
     environment:
-      # MongoDB
-      # MONGO_URI: mongodb://localhost:27017
-      
-      # Redis
+      MONGO_URI: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/chatbot?authSource=admin
       REDIS_URL: redis://redis:6379
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      
-      # JWT
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
-      
-      # OpenAI (replace with your actual API key)
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-your-api-key-here}
-      OPENAI_MODEL: gpt-3.5-turbo
-      
-      # Server Configuration
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       PORT: 5000
       NODE_ENV: development
       API_URL: http://localhost:5000
-      
-      # Google OAuth (Optional - add your credentials)
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-your-google-client-id}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-your-google-client-secret}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_REDIRECT_URI: http://localhost:3000/auth/google/callback
-    
     depends_on:
       mongodb:
         condition: service_healthy
       redis:
         condition: service_healthy
-    
     networks:
       - chatbot-network
-    
     volumes:
       - ./backend:/app
-    
+      # Anonymous volume keeps the container's Linux-built node_modules from
+      # being masked by the host's macOS-built ones (bcrypt is native).
+      - /app/node_modules
     command: npm run dev
 
-  # Frontend Application
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
     container_name: chatbot-frontend
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:5000/v1
       WATCHPACK_POLLING: "true"
-      CHOKIDAR_USEPOLLING: "true"
-      NEXT_SKIP_TURBOPACK: "1"
-      NODE_OPTIONS: "--max-old-space-size=2048"
       NEXT_TELEMETRY_DISABLED: "1"
-    
-    mem_limit: 2g
-    memswap_limit: 2g
-    
+    depends_on:
+      - backend
     networks:
       - chatbot-network
-    
     volumes:
       - ./frontend:/app
-    
+      - /app/node_modules
+      - /app/.next
     command: npm run dev
-  
 
 volumes:
   mongodb_data:
-    driver: local
   redis_data:
-    driver: local
 
 networks:
   chatbot-network:
