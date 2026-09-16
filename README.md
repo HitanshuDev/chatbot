@@ -6,83 +6,22 @@ against them through a dashboard or an embeddable widget.
 - **Backend** — Express + TypeScript, MongoDB (Mongoose), Redis (caching + rate limits), OpenAI, Bull queues
 - **Frontend** — Next.js 16 (App Router), React 19, Tailwind v4, shadcn/ui, Zustand
 
-## Prerequisites
+## Quick start
 
-- Docker (or Podman) with a Compose provider
-- An OpenAI API key — without one the app runs, but the bot replies with a fallback message
-
-## Setup
+Requires Docker (or Podman) with a Compose provider, plus an OpenAI API key.
 
 ```bash
-cp .env.example .env
-```
-
-Fill in `.env` — every value below is required before the first start, and Compose will
-refuse to start rather than fall back to a default:
-
-```bash
-OPENAI_API_KEY=sk-...                      # your key
-JWT_SECRET=$(openssl rand -hex 32)         # any long random string
-MONGO_USER=chatbot_dev                     # anything
-MONGO_PASSWORD=$(openssl rand -hex 16)     # anything
-```
-
-`MONGO_USER` / `MONGO_PASSWORD` seed the database the first time it starts, so set them
-before your first `up`. Changing them later requires `docker compose down -v` to
-reinitialize, which wipes local data.
-
-`.env` is gitignored — keep secrets out of commits.
-
-```bash
+cp .env.example .env     # then fill in all four values
 docker compose up --build
 ```
 
-| Service  | URL                          |
-| -------- | ---------------------------- |
-| Frontend | http://localhost:3000        |
-| Backend  | http://localhost:5000        |
-| Health   | http://localhost:5000/health |
-| MongoDB  | localhost:27017              |
-| Redis    | localhost:6379               |
+Open http://localhost:3000. The backend is on http://localhost:5000.
 
-Both app containers mount the source tree and run their dev servers, so edits hot-reload
-without a rebuild. Rebuild only when dependencies change.
+**See [RUNNING.md](RUNNING.md)** for the full guide — running locally with pnpm instead of
+Docker, data persistence, inspecting the database, and troubleshooting.
 
-Using Podman without the `docker` alias? Substitute `podman-compose` for `docker compose`.
-
-### Common commands
-
-```bash
-docker compose up -d          # background
-docker compose logs -f        # tail logs
-docker compose down           # stop
-docker compose down -v        # stop and wipe Mongo/Redis data
-```
-
-## Running without Docker
-
-Mongo and Redis are still required. Start just those in containers:
-
-```bash
-docker compose up -d mongodb redis
-```
-
-Then run each app against them:
-
-```bash
-cp backend/.env.example backend/.env       # set OPENAI_API_KEY
-cd backend && npm install && npm run dev   # :5000
-
-cp frontend/.env.example frontend/.env.local
-cd frontend && npm install && npm run dev  # :3000
-```
-
-Document embedding runs inline on upload. To process it on the Bull queue instead, run a
-worker alongside the backend:
-
-```bash
-cd backend && npm run worker:embedding
-```
+This project uses **pnpm** (pinned via the `packageManager` field). Don't use `npm` or
+`yarn` — it will produce a conflicting lockfile.
 
 ## API
 
@@ -153,4 +92,4 @@ frontend/src
 - Mongo, Redis, and both dev servers bind to `127.0.0.1` only — they are not reachable from
   other machines on your network.
 - `backend/Dockerfile` has `development`, `builder`, and `production` targets. Compose uses
-  `development`; `npm run build` then `npm start` covers the production path.
+  `development`; `pnpm build` then `pnpm start` covers the production path.

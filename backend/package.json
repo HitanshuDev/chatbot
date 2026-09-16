@@ -3,13 +3,17 @@
   "version": "1.0.0",
   "description": "AI Chatbot Platform - Enterprise-grade multi-tenant AI chatbot with RAG capabilities",
   "main": "index.js",
+  "packageManager": "pnpm@10.6.2",
+  "pnpm": {
+    "onlyBuiltDependencies": ["bcrypt", "msgpackr-extract"]
+  },
   "scripts": {
     "test": "jest",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "worker:embedding": "ts-node-dev src/workers/embedding.worker.ts",
-    "worker:pdf": "ts-node-dev src/workers/pdf.worker.ts"
+    "worker:analytics": "ts-node-dev src/workers/analytics.worker.ts"
   },
   "keywords": [],
   "author": "",

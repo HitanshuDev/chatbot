@@ -66,7 +66,7 @@ services:
       # Anonymous volume keeps the container's Linux-built node_modules from
       # being masked by the host's macOS-built ones (bcrypt is native).
       - /app/node_modules
-    command: npm run dev
+    command: pnpm dev
 
   frontend:
     build:
@@ -86,7 +86,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
-    command: npm run dev
+    command: pnpm dev
 
 volumes:
   mongodb_data:

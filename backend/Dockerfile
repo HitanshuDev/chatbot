@@ -1,52 +1,58 @@
 # Development stage
 FROM node:20-alpine AS development
 
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+RUN corepack enable
+
 WORKDIR /app
 
-# Clear npm cache
-RUN npm cache clean --force
+COPY package.json pnpm-lock.yaml .npmrc ./
 
-COPY package*.json ./
-COPY .npmrc ./
-
-RUN npm install
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
 EXPOSE 5000
 
-CMD ["npm", "run", "dev"]
+CMD ["pnpm", "dev"]
 
 # Builder stage - compiles TypeScript
 FROM node:20-alpine AS builder
 
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+RUN corepack enable
+
 WORKDIR /app
 
-RUN npm cache clean --force
+COPY package.json pnpm-lock.yaml .npmrc ./
 
-COPY package*.json ./
-COPY .npmrc ./
-
-RUN npm install
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-RUN npm run build
+RUN pnpm build
 
 # Production stage
 FROM node:20-alpine AS production
 
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+ENV NODE_ENV=production
+RUN corepack enable
+
 WORKDIR /app
 
-RUN npm cache clean --force
+COPY package.json pnpm-lock.yaml .npmrc ./
 
-COPY package*.json ./
-COPY .npmrc ./
-
-RUN npm install --omit=dev
+RUN pnpm install --frozen-lockfile --prod
 
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 5000
 
-CMD ["npm", "start"]
+CMD ["pnpm", "start"]
