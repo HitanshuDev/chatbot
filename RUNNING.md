@@ -3,7 +3,8 @@
 Two ways to run it. **Docker is the recommended path** — it's one command and you don't
 need MongoDB or Redis installed on your machine.
 
-Either way, Mongo and Redis run in containers. Nothing is installed on your host.
+Mongo runs in a container; Redis is a managed instance (Redis Cloud), so its
+connection string comes from `REDIS_URL`. Nothing is installed on your host.
 
 | Service  | URL                          |
 | -------- | ---------------------------- |
@@ -11,7 +12,7 @@ Either way, Mongo and Redis run in containers. Nothing is installed on your host
 | Backend  | http://localhost:5000        |
 | Health   | http://localhost:5000/health |
 | MongoDB  | 127.0.0.1:27017              |
-| Redis    | 127.0.0.1:6379               |
+| Redis    | managed (Redis Cloud)        |
 
 All ports bind to loopback only, so nothing is reachable from other machines on your network.
 
@@ -23,11 +24,12 @@ All ports bind to loopback only, so nothing is reachable from other machines on 
 cp .env.example .env
 ```
 
-Open `.env` and fill in all four values. Compose **fails to start** if any are missing —
+Open `.env` and fill in all five values. Compose **fails to start** if any are missing —
 there are no fallback defaults:
 
 ```bash
 OPENAI_API_KEY=sk-...        # your key
+REDIS_URL=redis://default:<password>@<host>:<port>   # from Redis Cloud
 JWT_SECRET=...               # generate: openssl rand -hex 32
 MONGO_USER=chatbot_dev       # anything
 MONGO_PASSWORD=...           # generate: openssl rand -hex 16
@@ -88,10 +90,10 @@ via `packageManager`, so the simplest way to get the right one is Corepack:
 corepack enable
 ```
 
-You still need Mongo and Redis, so start just those two in containers:
+You still need Mongo, so start just that container (Redis is already managed):
 
 ```bash
-docker compose up -d mongodb redis
+docker compose up -d mongodb
 ```
 
 ### Backend
@@ -137,14 +139,17 @@ first, leaving the databases up:
 docker compose stop backend frontend
 ```
 
-### Background workers
+### Background worker
 
-Document embedding runs inline on upload, so no worker is needed for normal use. To process
-it on the Bull queue instead:
+Document embedding runs on a Bull queue, so the worker must be running for uploads to
+finish processing. Compose starts it as the `embedding-worker` service. Running outside
+Docker, start it yourself in a third terminal:
 
 ```bash
 cd backend && pnpm worker:embedding
 ```
+
+Without it, uploads stay at `pending` forever.
 
 ---
 
@@ -185,7 +190,7 @@ credentials and `authSource=admin`.
 ## Troubleshooting
 
 **`docker compose up` exits complaining a variable is not set**
-A required value is missing from `.env`. See Step 1 — all four are mandatory.
+A required value is missing from `.env`. See Step 1 — all five are mandatory.
 
 **Backend logs `MongoDB connection error` / authentication failed**
 Your `MONGO_USER` / `MONGO_PASSWORD` don't match what the database was seeded with. The

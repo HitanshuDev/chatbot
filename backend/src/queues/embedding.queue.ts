@@ -6,13 +6,12 @@ export interface EmbeddingJobData {
 
 export const EMBEDDING_QUEUE_NAME = "embeddings";
 
+const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
+
 export const embeddingQueue = new Queue<EmbeddingJobData>(
   EMBEDDING_QUEUE_NAME,
+  REDIS_URL,
   {
-    redis: {
-      host: process.env.REDIS_HOST || "localhost",
-      port: Number(process.env.REDIS_PORT || 6379),
-    },
     defaultJobOptions: {
       attempts: 3,
       backoff: { type: "exponential", delay: 2000 },
