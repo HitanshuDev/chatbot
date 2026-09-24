@@ -39,6 +39,7 @@ export default function BotDetailPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [copied, setCopied] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
 
 useEffect(() => {
   useAuthStore.getState().hydrate();
@@ -119,6 +120,17 @@ useEffect(() => {
       toast.success('API key copied to clipboard');
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  // NEXT_PUBLIC_API_URL already ends in /v1, which is where script.js lives.
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/v1';
+  const embedSnippet = `<script src="${apiBase}/bots/${botId}/script.js" async><\/script>`;
+
+  const copyEmbedCode = () => {
+    navigator.clipboard.writeText(embedSnippet);
+    setEmbedCopied(true);
+    toast.success('Embed code copied to clipboard');
+    setTimeout(() => setEmbedCopied(false), 2000);
   };
 
   if (!user) {
@@ -306,17 +318,24 @@ useEffect(() => {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Widget Embed Code</label>
-                  <code className="block bg-slate-50 p-3 rounded-lg text-xs font-mono overflow-x-auto">
-                    {`<script src="https://chatbot.ai/widget.js"></script>
-<script>
-  ChatBot.init({
-    apiKey: "${bot?.apiKey}",
-    botId: "${botId}"
-  });
-</script>`}
+                  <p className="text-xs text-slate-500">
+                    Paste this before the closing &lt;/body&gt; tag on any page. The chat
+                    launcher appears in the bottom-right corner.
+                  </p>
+                  <code className="block bg-slate-50 p-3 rounded-lg text-xs font-mono overflow-x-auto whitespace-pre">
+                    {embedSnippet}
                   </code>
-                  <Button variant="outline" size="sm" className="w-full mt-2">
-                    Copy Embed Code
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2"
+                    onClick={copyEmbedCode}
+                  >
+                    {embedCopied ? (
+                      <><Check className="h-4 w-4 mr-2" />Copied</>
+                    ) : (
+                      <><Copy className="h-4 w-4 mr-2" />Copy Embed Code</>
+                    )}
                   </Button>
                 </div>
               </CardContent>
