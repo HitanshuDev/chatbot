@@ -65,8 +65,8 @@ graph TB
 
 ## 2. Deployment topology (Docker Compose)
 
-Five services on one bridge network. Every published port binds to `127.0.0.1`
-only, so nothing is reachable from other machines.
+Three application containers on one bridge network. Both datastores are managed
+services, so there are no local database containers and no data volumes.
 
 ```mermaid
 graph LR
@@ -75,21 +75,24 @@ graph LR
         FE["frontend<br/>127.0.0.1:3000"]
         BE["backend<br/>127.0.0.1:5000"]
         WK["embedding-worker<br/>no published port"]
-        DB[("mongodb<br/>127.0.0.1:27017<br/>vol: mongodb_data")]
-        RD[("redis<br/>127.0.0.1:6379<br/>vol: redis_data")]
+    end
+
+    subgraph managed["Managed services"]
+        DB[("MongoDB Atlas<br/>via MONGO_URI")]
+        RD[("Redis Cloud<br/>via REDIS_URL")]
     end
 
     FE -->|"NEXT_PUBLIC_API_URL"| BE
-    BE -->|"mongodb://mongodb:27017"| DB
-    BE -->|"redis://redis:6379"| RD
+    BE --> DB
+    BE --> RD
     WK --> DB
     WK --> RD
 
-    note["Source is bind-mounted into<br/>backend / worker / frontend,<br/>so dev servers hot-reload.<br/>node_modules lives in an<br/>anonymous volume."]
+    note["Source is bind-mounted into all three,<br/>so dev servers hot-reload.<br/>node_modules lives in an<br/>anonymous volume."]
 ```
 
-Health gating: `backend` and `embedding-worker` both wait on `mongodb` and
-`redis` passing their healthchecks before starting.
+Because state lives outside Docker, `docker compose down -v` is no longer
+destructive, and the containers are disposable.
 
 ---
 
