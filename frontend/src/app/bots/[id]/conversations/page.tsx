@@ -261,7 +261,7 @@ export default function BotConversationsPage() {
                           {new Date(conv.createdAt).toLocaleString()}
                         </p>
                       </div>
-                      <Link href={`/bots/${botId}`}>
+                      <Link href={`/bots/${botId}/conversations/${conv.id}`}>
                         <Button variant="outline" size="sm">
                           View
                         </Button>
