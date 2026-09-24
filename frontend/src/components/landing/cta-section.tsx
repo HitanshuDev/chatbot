@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import Link from 'next/link';
 
 export function CTASection() {
@@ -24,30 +24,43 @@ export function CTASection() {
               Ready to Get Started?
             </h2>
             <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
-              Join thousands of developers building AI-powered chatbots. Start free today, upgrade when you're ready.
+              Create a bot, upload your documents, and drop one line of script onto your site. Start on the free plan and upgrade when you need to.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/auth/signup">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 px-8">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/auth/signup" className="sm:w-auto">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto bg-white text-blue-700 hover:bg-blue-50 px-8 shadow-lg shadow-blue-900/20"
+                >
                   Start Building Free
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
-              <Link href="/widget-preview">
+              <Link href="/widget-preview" className="sm:w-auto">
                 <Button
                   size="lg"
-                  variant="outline"
-                  className="border-white text-white hover:bg-white/10 px-8"
+                  className="w-full sm:w-auto bg-transparent border-2 border-white/70 text-white hover:bg-white hover:text-blue-700 hover:border-white px-8 transition-colors"
                 >
                   Watch Demo
                 </Button>
               </Link>
             </div>
 
-            <p className="text-blue-100 text-sm mt-8">
-              💳 No credit card required • 🚀 Takes 2 minutes • 🔓 Free forever plan available
-            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-blue-100">
+              <span className="inline-flex items-center gap-2">
+                <Check className="w-4 h-4" aria-hidden="true" />
+                No credit card required
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <Check className="w-4 h-4" aria-hidden="true" />
+                Set up in a few minutes
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <Check className="w-4 h-4" aria-hidden="true" />
+                Free plan available
+              </span>
+            </div>
           </div>
         </motion.div>
       </div>

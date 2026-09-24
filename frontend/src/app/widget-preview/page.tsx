@@ -24,13 +24,9 @@ export default function WidgetPreviewPage() {
     setIsLoading(false);
   }, [user, router]);
 
-  const embedCode = `<script src="https://chatbot.ai/widget.js"></script>
-<script>
-  ChatBot.init({
-    apiKey: "sk_test_abc123def456",
-    botId: "bot_123456"
-  });
-</script>`;
+  // NEXT_PUBLIC_API_URL already ends in /v1, which is where script.js lives.
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/v1';
+  const embedCode = `<script src="${apiBase}/bots/YOUR_BOT_ID/script.js" async><\/script>`;
 
   const copyCode = () => {
     navigator.clipboard.writeText(embedCode);

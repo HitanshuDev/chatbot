@@ -83,7 +83,7 @@ export function PricingSection() {
   };
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+    <section id="pricing" className="scroll-mt-16 py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
       <div className="max-w-6xl mx-auto">
         <motion.div
           className="text-center mb-16"
@@ -98,10 +98,13 @@ export function PricingSection() {
           <p className="text-xl text-slate-600 dark:text-slate-400">
             Scale from hobby to enterprise. No hidden fees.
           </p>
+          <p className="mt-3 text-sm text-slate-500 dark:text-slate-500">
+            Prices in USD, billed monthly. Cancel any time.
+          </p>
         </motion.div>
 
         <motion.div
-          className="grid md:grid-cols-3 gap-6 lg:gap-8"
+          className="grid md:grid-cols-3 gap-6 lg:gap-8 md:pt-4"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -110,14 +113,14 @@ export function PricingSection() {
           {plans.map((plan) => (
             <motion.div key={plan.name} variants={itemVariants}>
               <Card
-                className={`p-8 h-full flex flex-col ${
+                className={`relative p-8 h-full flex flex-col transition-shadow ${
                   plan.popular
-                    ? 'ring-2 ring-blue-500 transform scale-105'
-                    : ''
+                    ? 'ring-2 ring-blue-600 shadow-xl shadow-blue-600/10 md:-translate-y-2'
+                    : 'hover:shadow-md'
                 }`}
               >
                 {plan.popular && (
-                  <div className="mb-4 inline-block px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-blue-600 text-white text-xs font-semibold shadow-sm whitespace-nowrap">
                     Most Popular
                   </div>
                 )}
