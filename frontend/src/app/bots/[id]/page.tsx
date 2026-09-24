@@ -41,7 +41,9 @@ export default function BotDetailPage() {
   const [copied, setCopied] = useState(false);
 
 useEffect(() => {
-  if (!user) {
+  useAuthStore.getState().hydrate();
+
+  if (!useAuthStore.getState().user) {
     router.push("/auth/login");
     return;
   }

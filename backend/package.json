@@ -5,7 +5,10 @@
   "main": "index.js",
   "packageManager": "pnpm@10.6.2",
   "pnpm": {
-    "onlyBuiltDependencies": ["bcrypt", "msgpackr-extract"]
+    "onlyBuiltDependencies": [
+      "bcrypt",
+      "msgpackr-extract"
+    ]
   },
   "scripts": {
     "test": "jest",
@@ -23,6 +26,7 @@
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.11",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.2.0",
     "@types/node": "^25.0.9",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",
@@ -40,6 +44,7 @@
     "express-rate-limit": "^7.5.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.4",
+    "multer": "^2.4.0",
     "nodemon": "^3.1.11",
     "openai": "^6.16.0",
     "pdf-parse": "^1.1.1",

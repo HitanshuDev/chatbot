@@ -1,49 +1,45 @@
 import "dotenv/config";
 
-import Queue from "bull";
+import mongoose from "mongoose";
 import Upload from "../models/upload.model";
 import Embedding from "../models/embedding.model";
 import Bot from "../models/bot.model";
-import { getOpenAIClient } from "../utils/openai";
-import mongoose from "mongoose";
+import { embeddingQueue } from "../queues/embedding.queue";
+import {
+  chunkText,
+  generateEmbedding,
+  usingRealEmbeddings,
+} from "../utils/embeddings";
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI as string);
-
-// Create Bull queue
-const embeddingQueue = new Queue("embeddings", {
-  redis: {
-    host: process.env.REDIS_HOST || "localhost",
-    port: Number(process.env.REDIS_PORT || 6379),
-  },
-});
+mongoose
+  .connect(process.env.MONGO_URI as string)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 embeddingQueue.process(async (job) => {
   const { uploadId } = job.data;
 
   const upload = await Upload.findById(uploadId);
   if (!upload) {
-    throw new Error("Upload not found");
+    throw new Error(`Upload ${uploadId} not found`);
   }
 
-  // Chunk the content
-  const chunks = chunkText(upload.content || "", 1000, 200);
+  upload.status = "processing";
+  await upload.save();
+
+  const chunks = chunkText(upload.content || "");
+  console.log(`Job ${job.id}: ${upload.fileName} → ${chunks.length} chunks`);
+
   const embeddingIds = [];
 
   for (let i = 0; i < chunks.length; i++) {
-    const chunk = chunks[i];
-
-    // Generate embedding using OpenAI
-    const response = await getOpenAIClient().embeddings.create({
-      model: "text-embedding-ada-002",
-      input: chunk,
-    });
+    const vector = await generateEmbedding(chunks[i]);
 
     const embedding = await Embedding.create({
       botId: upload.botId,
       uploadId: upload._id,
-      text: chunk,
-      embedding: response.data[0].embedding,
+      text: chunks[i],
+      embedding: vector,
       metadata: {
         chunkIndex: i,
         source: upload.fileName,
@@ -51,53 +47,38 @@ embeddingQueue.process(async (job) => {
     });
 
     embeddingIds.push(embedding._id);
-
-    // Update job progress
-    job.progress(Math.floor(((i + 1) / chunks.length) * 100));
+    await job.progress(Math.floor(((i + 1) / chunks.length) * 100));
   }
 
-  // Update upload
   upload.status = "completed";
   upload.embeddingIds = embeddingIds;
+  upload.error = undefined;
   await upload.save();
 
-  // Update bot with new embeddings
   await Bot.findByIdAndUpdate(upload.botId, {
     $push: { embeddings: { $each: embeddingIds } },
   });
 
-  return { embeddingIds };
+  return { embeddingCount: embeddingIds.length };
 });
 
 embeddingQueue.on("failed", async (job, err) => {
-  console.error(`Job ${job.id} failed:`, err);
+  console.error(`Job ${job.id} failed:`, err.message);
   const upload = await Upload.findById(job.data.uploadId);
-  if (upload) {
+  // Only mark failed once Bull has exhausted its retries.
+  if (upload && job.attemptsMade >= (job.opts.attempts ?? 1)) {
     upload.status = "failed";
     upload.error = err.message;
     await upload.save();
   }
 });
 
-embeddingQueue.on("completed", (job) => {
-  console.log(`Job ${job.id} completed successfully`);
+embeddingQueue.on("completed", (job, result) => {
+  console.log(`Job ${job.id} completed: ${result.embeddingCount} embeddings`);
 });
 
-function chunkText(
-  text: string,
-  chunkSize: number,
-  overlapSize: number
-): string[] {
-  const chunks: string[] = [];
-  let start = 0;
-
-  while (start < text.length) {
-    const end = Math.min(start + chunkSize, text.length);
-    chunks.push(text.substring(start, end));
-    start = end - overlapSize;
-  }
-
-  return chunks;
-}
-
-console.log("🚀 Embedding worker started...");
+console.log(
+  `🚀 Embedding worker started (embeddings: ${
+    usingRealEmbeddings() ? "OpenAI" : "local stub, no API key set"
+  })`,
+);

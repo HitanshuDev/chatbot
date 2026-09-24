@@ -7,11 +7,11 @@ class ApiClient {
   private client: AxiosInstance;
 
   constructor() {
+    // No default Content-Type: axios infers it per request, which matters for
+    // file uploads. A hardcoded application/json here makes axios serialise
+    // FormData to JSON, so the file never reaches the server.
     this.client = axios.create({
       baseURL: API_BASE_URL,
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
 
     // Add token to requests
@@ -26,9 +26,9 @@ class ApiClient {
     // Handle errors
     this.client.interceptors.response.use(
       (response) => response,
-      (error: AxiosError) => {
+      (error: AxiosError<{ error?: string }>) => {
         const apiError: ApiError = {
-          message: error.message,
+          message: error.response?.data?.error || error.message,
           code: error.code || 'UNKNOWN',
           statusCode: error.response?.status || 0,
         };
@@ -131,11 +131,7 @@ class ApiClient {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await this.client.post(`/bots/${botId}/uploads`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await this.client.post(`/bots/${botId}/uploads`, formData);
     return response.data;
   }
 
