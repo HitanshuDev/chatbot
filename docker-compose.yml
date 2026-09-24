@@ -18,21 +18,6 @@ services:
       timeout: 5s
       retries: 10
 
-  redis:
-    image: redis:7-alpine
-    container_name: chatbot-redis
-    ports:
-      - "127.0.0.1:6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - chatbot-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
   backend:
     build:
       context: ./backend
@@ -42,9 +27,7 @@ services:
       - "127.0.0.1:5000:5000"
     environment:
       MONGO_URI: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/chatbot?authSource=admin
-      REDIS_URL: redis://redis:6379
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      REDIS_URL: ${REDIS_URL:?set REDIS_URL in .env}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
@@ -56,8 +39,6 @@ services:
       GOOGLE_REDIRECT_URI: http://localhost:3000/auth/google/callback
     depends_on:
       mongodb:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     networks:
       - chatbot-network
@@ -76,16 +57,12 @@ services:
     container_name: chatbot-embedding-worker
     environment:
       MONGO_URI: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/chatbot?authSource=admin
-      REDIS_URL: redis://redis:6379
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      REDIS_URL: ${REDIS_URL:?set REDIS_URL in .env}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       NODE_ENV: development
     depends_on:
       mongodb:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     networks:
       - chatbot-network
@@ -116,7 +93,6 @@ services:
 
 volumes:
   mongodb_data:
-  redis_data:
 
 networks:
   chatbot-network:

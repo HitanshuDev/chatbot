@@ -7,12 +7,10 @@ import mongoose from "mongoose";
 mongoose.connect(process.env.MONGO_URI as string);
 
 // Create Bull queue
-const analyticsQueue = new Queue("analytics", {
-  redis: {
-    host: process.env.REDIS_HOST || "localhost",
-    port: Number(process.env.REDIS_PORT || 6379),
-  },
-});
+const analyticsQueue = new Queue(
+  "analytics",
+  process.env.REDIS_URL || "redis://localhost:6379",
+);
 
 analyticsQueue.process(async (job) => {
   const { botId, action } = job.data;
