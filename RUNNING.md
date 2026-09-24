@@ -3,15 +3,16 @@
 Two ways to run it. **Docker is the recommended path** — it's one command and you don't
 need MongoDB or Redis installed on your machine.
 
-Mongo runs in a container; Redis is a managed instance (Redis Cloud), so its
-connection string comes from `REDIS_URL`. Nothing is installed on your host.
+Both datastores are managed: MongoDB Atlas via `MONGO_URI` and Redis Cloud via
+`REDIS_URL`. Docker only runs the application containers, so there is no local
+database and no data volume.
 
 | Service  | URL                          |
 | -------- | ---------------------------- |
 | Frontend | http://localhost:3000        |
 | Backend  | http://localhost:5000        |
 | Health   | http://localhost:5000/health |
-| MongoDB  | 127.0.0.1:27017              |
+| MongoDB  | managed (Atlas)              |
 | Redis    | managed (Redis Cloud)        |
 
 All ports bind to loopback only, so nothing is reachable from other machines on your network.
@@ -24,19 +25,19 @@ All ports bind to loopback only, so nothing is reachable from other machines on 
 cp .env.example .env
 ```
 
-Open `.env` and fill in all five values. Compose **fails to start** if any are missing —
+Open `.env` and fill in all four values. Compose **fails to start** if any are missing —
 there are no fallback defaults:
 
 ```bash
-OPENAI_API_KEY=sk-...        # your key
+OPENAI_API_KEY=sk-...                                # your key
+MONGO_URI=mongodb+srv://...@....mongodb.net/chatbot  # from Atlas
 REDIS_URL=redis://default:<password>@<host>:<port>   # from Redis Cloud
-JWT_SECRET=...               # generate: openssl rand -hex 32
-MONGO_USER=chatbot_dev       # anything
-MONGO_PASSWORD=...           # generate: openssl rand -hex 16
+JWT_SECRET=...                                       # openssl rand -hex 32
 ```
 
-> `MONGO_USER` / `MONGO_PASSWORD` seed the database the **first time it starts**. Changing
-> them later has no effect until you run `docker compose down -v`, which wipes local data.
+> Atlas only accepts connections from allow-listed IPs. Add your current address under
+> **Network Access**, and keep the `/chatbot` database name in the URI — without it the
+> driver connects to `test` instead.
 
 Without `OPENAI_API_KEY` everything still runs — the app boots and you can sign up and
 create bots, but the bot replies `"I'm having trouble right now. Please try again."`
@@ -90,11 +91,7 @@ via `packageManager`, so the simplest way to get the right one is Corepack:
 corepack enable
 ```
 
-You still need Mongo, so start just that container (Redis is already managed):
-
-```bash
-docker compose up -d mongodb
-```
+Both datastores are managed, so there is nothing extra to start.
 
 ### Backend
 
@@ -102,16 +99,8 @@ docker compose up -d mongodb
 cp backend/.env.example backend/.env
 ```
 
-Edit `backend/.env` and set `OPENAI_API_KEY`, `JWT_SECRET`, and the Mongo credentials —
-`MONGO_URI` has `<MONGO_USER>` / `<MONGO_PASSWORD>` placeholders you must replace with the
-same values from your root `.env`:
-
-```
-MONGO_URI=mongodb://chatbot_dev:your-password@127.0.0.1:27017/chatbot?authSource=admin
-```
-
-Note the host is `127.0.0.1`, not `mongodb`. The `mongodb` hostname only resolves inside
-the container network.
+Copy the same `MONGO_URI`, `REDIS_URL`, `JWT_SECRET` and `OPENAI_API_KEY` values from your
+root `.env` into `backend/.env`.
 
 ```bash
 cd backend
@@ -155,47 +144,40 @@ Without it, uploads stay at `pending` forever.
 
 ## Data persistence
 
-Your database lives in a named Docker volume (`chatbot_mongodb_data`), not on your host
-filesystem. Accounts and bots survive restarts.
+Both datastores are hosted, so nothing lives in a Docker volume any more and
+`docker compose down -v` no longer destroys anything. Your data persists in Atlas
+independently of the containers.
 
-| Action                            | Your data      |
-| --------------------------------- | -------------- |
-| `docker compose restart`          | kept           |
-| `docker compose down` then `up`   | kept           |
-| Reboot your machine               | kept           |
-| `docker compose down -v`          | **wiped**      |
+Back up before risky changes:
 
-`-v` removes volumes. It's the only way to change the Mongo credentials, but it deletes
-every account and bot you've created.
+```bash
+mongodump --uri="$MONGO_URI" --archive=backup.archive --gzip
+mongorestore --uri="$MONGO_URI" --archive=backup.archive --gzip
+```
 
 ---
 
 ## Inspecting the database
 
-There's no `mongosh` on your host — Mongo only exists in the container. Query it through
-`exec`. Load your credentials into the shell first, otherwise the variables below are empty:
+There is no local Mongo container to `exec` into. Use MongoDB Compass with the Atlas
+connection string, the Atlas web UI, or `mongosh` in a throwaway container:
 
 ```bash
 set -a && . ./.env && set +a
-
-docker compose exec mongodb mongosh \
-  "mongodb://$MONGO_USER:$MONGO_PASSWORD@localhost:27017/chatbot?authSource=admin"
+docker run --rm -it mongo:7 mongosh "$MONGO_URI"
 ```
-
-GUI tools like MongoDB Compass work too — connect to `127.0.0.1:27017` with the same
-credentials and `authSource=admin`.
 
 ---
 
 ## Troubleshooting
 
 **`docker compose up` exits complaining a variable is not set**
-A required value is missing from `.env`. See Step 1 — all five are mandatory.
+A required value is missing from `.env`. See Step 1 — all four are mandatory.
 
-**Backend logs `MongoDB connection error` / authentication failed**
-Your `MONGO_USER` / `MONGO_PASSWORD` don't match what the database was seeded with. The
-credentials in `.env` only apply on first init. To reseed:
-`docker compose down -v && docker compose up` (this wipes data).
+**Backend logs `MongoDB connection error`**
+Usually one of: your IP is not allow-listed in Atlas (**Network Access**), the password in
+`MONGO_URI` needs URL-encoding (`@`, `:`, `/` and `#` must be percent-encoded), or the
+database user lacks read/write on the `chatbot` database.
 
 **Bot replies "I'm having trouble right now"**
 `OPENAI_API_KEY` is missing, invalid, or out of quota. Check `docker compose logs backend`

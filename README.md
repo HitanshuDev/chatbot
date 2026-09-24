@@ -3,7 +3,7 @@
 Multi-tenant chatbot platform. Create bots, upload documents for retrieval, and chat
 against them through a dashboard or an embeddable widget.
 
-- **Backend** — Express + TypeScript, MongoDB (Mongoose), managed Redis (caching + Bull queues), OpenAI
+- **Backend** — Express + TypeScript, MongoDB Atlas (Mongoose), managed Redis (caching + Bull queues), OpenAI
 - **Frontend** — Next.js 16 (App Router), React 19, Tailwind v4, shadcn/ui, Zustand
 
 ## Quick start
@@ -11,7 +11,7 @@ against them through a dashboard or an embeddable widget.
 Requires Docker (or Podman) with a Compose provider, plus an OpenAI API key.
 
 ```bash
-cp .env.example .env     # then fill in all five values
+cp .env.example .env     # then fill in all four values
 docker compose up --build
 ```
 
@@ -57,8 +57,7 @@ Docker, `backend/.env` supplies them instead.
 | `OPENAI_API_KEY`                        | yes      | Chat completions and embeddings              |
 | `OPENAI_MODEL`                          | no       | Defaults to `gpt-4o-mini`                    |
 | `JWT_SECRET`                            | yes      | Signs auth tokens; use a real secret in prod |
-| `MONGO_USER` / `MONGO_PASSWORD`         | yes      | Seed the local database on first start       |
-| `MONGO_URI`                             | yes      | Assembled by Compose from the two above      |
+| `MONGO_URI`                             | yes      | MongoDB Atlas connection string              |
 | `REDIS_URL`                             | yes      | Managed Redis (Redis Cloud); cache + Bull    |
 | `PORT`                                  | no       | Backend port, defaults to `5000`             |
 | `GOOGLE_CLIENT_ID` / `_SECRET`          | no       | Only for Google login                        |
@@ -89,8 +88,7 @@ frontend/src
 
 - No credentials are committed. Compose reads them from `.env` and fails fast if they are
   missing, so nothing falls back to a shared default.
-- Mongo and both dev servers bind to `127.0.0.1` only — they are not reachable from other
-  machines on your network. Redis is a managed instance reached over TLS-less TCP, so treat
-  `REDIS_URL` as a secret.
+- Both dev servers bind to `127.0.0.1` only. MongoDB and Redis are managed services, so
+  treat `MONGO_URI` and `REDIS_URL` as secrets — they embed credentials.
 - `backend/Dockerfile` has `development`, `builder`, and `production` targets. Compose uses
   `development`; `pnpm build` then `pnpm start` covers the production path.
