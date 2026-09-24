@@ -1,7 +1,6 @@
 'use client';
 
 import { HeroSection } from '@/components/landing/hero-section';
-import { SocialProofSection } from '@/components/landing/social-proof-section';
 import { FeaturesSection } from '@/components/landing/features-section';
 import { DemoFlowSection } from '@/components/landing/demo-flow-section';
 import { APISection } from '@/components/landing/api-section';
@@ -14,7 +13,6 @@ export default function LandingPage() {
   return (
     <div className="bg-white dark:bg-slate-950">
       <HeroSection />
-      <SocialProofSection />
       <FeaturesSection />
       <DemoFlowSection />
       <APISection />

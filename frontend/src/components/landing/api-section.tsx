@@ -11,7 +11,7 @@ const codeExamples = [
   {
     title: 'Create a Bot',
     language: 'javascript',
-    code: `const response = await fetch('https://api.chatbot.ai/v1/bots', {
+    code: `const response = await fetch('https://your-host/v1/bots', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer YOUR_TOKEN',
@@ -35,7 +35,7 @@ console.log('Bot created:', bot.id);`,
     code: `import requests
 
 response = requests.post(
-  'https://api.chatbot.ai/v1/conversations/conv_123/messages',
+  'https://your-host/v1/conversations/conv_123/messages',
   headers={'Authorization': 'Bearer YOUR_TOKEN'},
   json={'content': 'Hello, can you help me?'}
 )
@@ -57,7 +57,7 @@ export function APISection() {
   };
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-900">
+    <section id="api" className="scroll-mt-16 py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-900">
       <div className="max-w-6xl mx-auto">
         <motion.div
           className="text-center mb-16"
@@ -120,19 +120,6 @@ export function APISection() {
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-12 text-center"
-        >
-          <a href="/docs/api" className="inline-block">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-              View Complete API Documentation
-            </Button>
-          </a>
-        </motion.div>
       </div>
     </section>
   );

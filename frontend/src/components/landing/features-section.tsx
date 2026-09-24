@@ -48,7 +48,7 @@ export function FeaturesSection() {
   };
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-900">
+    <section id="features" className="scroll-mt-16 py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-900">
       <div className="max-w-6xl mx-auto">
         <motion.div
           className="text-center mb-16"

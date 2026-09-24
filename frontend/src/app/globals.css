@@ -123,3 +123,10 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Smooth scrolling for the marketing page's in-page anchor links. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
