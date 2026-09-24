@@ -56,7 +56,7 @@ export const useBotStore = create<BotStore>((set) => ({
       set({ isLoading: true, error: null });
       const data = await apiClient.updateBot(botId, updateData);
       set((state) => ({
-        bots: state.bots.map((b) => (b.id === botId ? data.bot : b)),
+        bots: state.bots.map((b) => (b._id === botId ? data.bot : b)),
         activeBot: state.activeBot?._id === botId ? data.bot : state.activeBot,
       }));
     } catch (err: any) {

@@ -14,3 +14,7 @@ coverage/
 .vscode/
 .idea/
 *.tsbuildinfo
+
+# pnpm falls back to a project-local store when it cannot hard-link to the
+# default one (happens if pnpm install is run inside the container).
+.pnpm-store/

@@ -22,7 +22,7 @@ export default function DashboardPage() {
   useEffect(() => {
     useAuthStore.getState().hydrate();
 
-    if (!user) {
+    if (!useAuthStore.getState().user) {
       router.push("/auth/login");
       return;
     }

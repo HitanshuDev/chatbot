@@ -20,13 +20,14 @@ export default function SettingsPage() {
 
   useEffect(() => {
     useAuthStore.getState().hydrate();
-    if (!user) {
+    const currentUser = useAuthStore.getState().user;
+    if (!currentUser) {
       router.push('/auth/login');
       return;
     }
 
-    setDisplayName(user.name || '');
-    setEmail(user.email);
+    setDisplayName(currentUser.name || '');
+    setEmail(currentUser.email);
   }, [user, router]);
 
   const handleSaveProfile = () => {

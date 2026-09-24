@@ -27,8 +27,8 @@ export function Sidebar() {
     {
       label: 'Analytics',
       icon: BarChart3,
-      href: '/dashboard',
-      active: false,
+      href: '/analytics',
+      active: pathname === '/analytics',
     },
     {
       label: 'Settings',

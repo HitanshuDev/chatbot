@@ -16,7 +16,7 @@ export default function WidgetPreviewPage() {
 
   useEffect(() => {
     useAuthStore.getState().hydrate();
-    if (!user) {
+    if (!useAuthStore.getState().user) {
       router.push('/auth/login');
       return;
     }

@@ -64,16 +64,14 @@ export interface Message {
 // Upload Types
 export interface Upload {
   id: string;
-  botId: string;
+  botId?: string;
   fileName: string;
+  fileType?: 'pdf' | 'txt' | 'docx' | 'url';
   fileSize: number;
-  uploadedAt: Date;
   status: 'pending' | 'processing' | 'completed' | 'failed';
+  error?: string;
   embeddingCount: number;
-  metadata?: {
-    pageCount?: number;
-    extractedText?: string;
-  };
+  createdAt: string;
 }
 
 // Analytics Types

@@ -32,7 +32,7 @@ export default function BotConfigPage() {
 
   useEffect(() => {
     useAuthStore.getState().hydrate();
-    if (!user) {
+    if (!useAuthStore.getState().user) {
       router.push('/auth/login');
       return;
     }

@@ -68,6 +68,32 @@ services:
       - /app/node_modules
     command: pnpm dev
 
+  # Consumes the Bull "embeddings" queue. Shares the backend image.
+  embedding-worker:
+    build:
+      context: ./backend
+      target: development
+    container_name: chatbot-embedding-worker
+    environment:
+      MONGO_URI: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/chatbot?authSource=admin
+      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      NODE_ENV: development
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - chatbot-network
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: pnpm worker:embedding
+
   frontend:
     build:
       context: ./frontend

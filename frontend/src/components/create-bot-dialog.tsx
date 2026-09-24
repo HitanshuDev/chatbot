@@ -26,7 +26,7 @@ export function CreateBotDialog({ open, onOpenChange }: CreateBotDialogProps) {
     name: "",
     description: "",
     avatar: "",
-    theme: "light",
+    theme: "light" as "light" | "dark",
     initialPrompt: "You are a helpful assistant.",
     temperature: 0.7,
     maxTokens: 500,
@@ -130,7 +130,7 @@ export function CreateBotDialog({ open, onOpenChange }: CreateBotDialogProps) {
                   id="theme"
                   value={formData.theme}
                   onChange={(e) =>
-                    setFormData({ ...formData, theme: e.target.value })
+                    setFormData({ ...formData, theme: e.target.value as "light" | "dark" })
                   }
                   className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >

@@ -101,7 +101,7 @@ if (!hydrated) {
               ))
             : bots.map((bot) => (
                 <Card
-                  key={bot.id}
+                  key={bot._id}
                   className="group hover:shadow-lg hover:border-blue-200 transition-all"
                 >
                   <CardHeader>
